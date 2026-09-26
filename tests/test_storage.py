@@ -116,3 +116,10 @@ def test_list_pending_respects_limit(store):
     for i in range(5):
         store.enqueue(Job(queue="q", payload={"i": i}))
     assert len(store.list_pending("q", limit=2)) == 2
+
+
+def test_list_in_progress_reflects_claimed_jobs(store):
+    store.enqueue(Job(queue="q", payload={}))
+    claimed = store.claim("q", "w1")
+    in_progress = store.list_in_progress("q")
+    assert [j.id for j in in_progress] == [claimed.id]
