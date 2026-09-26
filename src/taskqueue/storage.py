@@ -188,9 +188,11 @@ class Store:
         return Job.from_redis(data)
 
     def queue_names(self) -> list[str]:
+        """All queue names that have ever had a job enqueued."""
         return sorted(self.r.smembers("tq:queues"))
 
     def queue_depths(self, queue: str) -> dict:
+        """Counts of pending/in_progress/dlq jobs for one queue."""
         return {
             "pending": self.r.zcard(self._pending_key(queue)),
             "in_progress": self.r.zcard(self._inprogress_key(queue)),
