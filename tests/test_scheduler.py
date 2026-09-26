@@ -72,3 +72,14 @@ def test_list_recurring_round_trips_registration_fields(task_queue):
     assert spec["cron"] is None
     assert spec["priority"] == 3
     assert spec["max_attempts"] == 2
+
+
+def test_tick_fires_all_due_jobs_in_one_call(task_queue):
+    sched = Scheduler(task_queue)
+    sched.register("a", queue="q", payload={}, interval_seconds=0)
+    sched.register("b", queue="q", payload={}, interval_seconds=0)
+    time.sleep(0.01)
+
+    fired = sched.tick()
+    assert sorted(fired) == ["a", "b"]
+    assert task_queue.store.queue_depths("q")["pending"] == 2
