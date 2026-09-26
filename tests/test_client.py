@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 
 def test_enqueue_returns_job_with_given_fields(task_queue):
     job = task_queue.enqueue("emails", {"to": "a@example.com"}, priority=5, max_attempts=2)
@@ -26,3 +28,8 @@ def test_fail_backoff_uses_attempts_minus_one_floored_at_zero(task_queue, monkey
     claimed = task_queue.claim("emails", "w1")
     task_queue.fail(claimed, "boom")
     assert seen_attempts == [0]
+
+
+def test_enqueue_rejects_empty_queue_name(task_queue):
+    with pytest.raises(ValueError):
+        task_queue.enqueue("", {})

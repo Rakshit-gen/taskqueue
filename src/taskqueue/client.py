@@ -30,6 +30,8 @@ class TaskQueue:
         Returns the enqueued Job, or None if idempotency_key was a duplicate
         already enqueued within its TTL window.
         """
+        if not queue:
+            raise ValueError("queue must be a non-empty string")
         job = Job(
             queue=queue,
             payload=payload,
