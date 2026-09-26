@@ -71,7 +71,9 @@ resume) — keep one source of truth and link to it.
 
 | Claim | Value | How measured | Date |
 |---|---|---|---|
-| _e.g. p50 latency_ | _e.g. 42ms_ | _e.g. `wrk -t4 -c100 -d30s`, local, M-series laptop_ | _YYYY-MM-DD_ |
+| Test suite size | 50 tests, all passing | `pytest -q` against a real local Redis (`redis://localhost:6379/15`) | 2026-09-26 |
+| Lint | Clean | `ruff check .` | 2026-09-26 |
+| Throughput / latency | Not measured | — | — |
 
 ## Architecture
 
