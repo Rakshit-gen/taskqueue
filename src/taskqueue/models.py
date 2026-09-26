@@ -8,6 +8,8 @@ from enum import Enum
 
 
 class JobStatus(str, Enum):
+    """Lifecycle states a Job moves through from enqueue to terminal state."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
