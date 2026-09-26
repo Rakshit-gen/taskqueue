@@ -22,6 +22,8 @@ def _cron_key(name: str) -> str:
 
 
 class Scheduler:
+    """Registers cron/interval recurring jobs and enqueues them when due."""
+
     def __init__(self, task_queue: TaskQueue):
         self.tq = task_queue
         self.r: redis.Redis = task_queue.redis
