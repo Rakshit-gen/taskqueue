@@ -23,6 +23,10 @@ _OPTIONAL_STR_FIELDS = ("idempotency_key", "last_error", "worker_id")
 
 @dataclass
 class Job:
+    """A single unit of work tracked in Redis as a hash plus a position in
+    one of its queue's sorted sets/lists (pending, inprogress, dlq, completed).
+    """
+
     queue: str
     payload: dict
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
