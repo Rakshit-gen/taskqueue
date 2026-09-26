@@ -39,6 +39,10 @@ COMPLETED_HISTORY_LIMIT = 100
 
 
 class Store:
+    """Redis-backed persistence for jobs: per-queue pending/inprogress/dlq
+    sorted sets, a capped completed-history list, and a hash per job.
+    """
+
     def __init__(self, client: redis.Redis):
         self.r = client
         self._claim = client.register_script(_CLAIM_SCRIPT)
