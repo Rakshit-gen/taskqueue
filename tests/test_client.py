@@ -14,3 +14,15 @@ def test_enqueue_returns_none_on_duplicate_idempotency_key(task_queue):
     second = task_queue.enqueue("emails", {"n": 2}, idempotency_key="welcome-42")
     assert first is not None
     assert second is None
+
+
+def test_fail_backoff_uses_attempts_minus_one_floored_at_zero(task_queue, monkeypatch):
+    seen_attempts = []
+    monkeypatch.setattr(
+        "taskqueue.client.backoff_seconds",
+        lambda attempt, **kw: seen_attempts.append(attempt) or 0.0,
+    )
+    task_queue.enqueue("emails", {})
+    claimed = task_queue.claim("emails", "w1")
+    task_queue.fail(claimed, "boom")
+    assert seen_attempts == [0]
