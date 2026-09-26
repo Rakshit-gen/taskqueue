@@ -32,3 +32,8 @@ def test_backoff_default_base_and_cap_used_when_omitted():
     for _ in range(50):
         v = backoff_seconds(0)
         assert 0 <= v <= 1.0
+
+
+def test_backoff_is_jittered_not_constant():
+    values = {backoff_seconds(5, base=1.0, cap=300.0) for _ in range(20)}
+    assert len(values) > 1
