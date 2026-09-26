@@ -200,17 +200,23 @@ class Store:
         }
 
     def list_pending(self, queue: str, limit: int = 100) -> list[Job]:
+        """Pending jobs due soonest first, capped at limit."""
         ids = self.r.zrange(self._pending_key(queue), 0, limit - 1)
         return [j for j in (self.get_job(i) for i in ids) if j is not None]
 
     def list_dlq(self, queue: str, limit: int = 100) -> list[Job]:
+        """Dead-lettered jobs, most recently dead first, capped at limit."""
         ids = self.r.zrevrange(self._dlq_key(queue), 0, limit - 1)
         return [j for j in (self.get_job(i) for i in ids) if j is not None]
 
     def list_in_progress(self, queue: str, limit: int = 100) -> list[Job]:
+        """Currently-claimed jobs ordered by lease expiry, capped at limit."""
         ids = self.r.zrange(self._inprogress_key(queue), 0, limit - 1)
         return [j for j in (self.get_job(i) for i in ids) if j is not None]
 
     def list_completed(self, queue: str, limit: int = 100) -> list[Job]:
+        """Most recently completed jobs, capped at limit and at
+        COMPLETED_HISTORY_LIMIT overall (see ack()).
+        """
         ids = self.r.lrange(self._completed_key(queue), 0, limit - 1)
         return [j for j in (self.get_job(i) for i in ids) if j is not None]
