@@ -132,3 +132,11 @@ def test_list_dlq_returns_dead_lettered_jobs(store):
     dead = store.fail(claimed, "boom", backoff_seconds=0)
     assert dead.status == JobStatus.DEAD
     assert [j.id for j in store.list_dlq("q")] == [dead.id]
+
+
+def test_list_completed_returns_acked_jobs(store):
+    job = Job(queue="q", payload={})
+    store.enqueue(job)
+    claimed = store.claim("q", "w1")
+    store.ack(claimed)
+    assert [j.id for j in store.list_completed("q")] == [claimed.id]
