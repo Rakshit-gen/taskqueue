@@ -36,6 +36,7 @@ class Worker:
         self.heartbeat_ttl = heartbeat_ttl
 
     def heartbeat(self) -> None:
+        """Refresh this worker's liveness key (TTL heartbeat_ttl seconds)."""
         r = self.tq.redis
         r.sadd(_WORKER_REGISTRY, self.worker_id)
         r.set(
@@ -63,6 +64,7 @@ class Worker:
         return False
 
     def run_forever(self, poll_interval: float = 1.0, reap_interval: float = 30.0) -> None:
+        """Loop forever: heartbeat, periodically reap expired leases, process jobs."""
         last_reap = 0.0
         while True:
             self.heartbeat()
