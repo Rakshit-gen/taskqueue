@@ -38,6 +38,9 @@ class Scheduler:
         priority: int = 0,
         max_attempts: int = 5,
     ) -> None:
+        """Register a recurring job under name, firing on cron or every
+        interval_seconds (exactly one must be given).
+        """
         if (cron is None) == (interval_seconds is None):
             raise ValueError("provide exactly one of cron or interval_seconds")
         if cron is not None:
@@ -60,10 +63,12 @@ class Scheduler:
         )
 
     def unregister(self, name: str) -> None:
+        """Remove a recurring job registration. No-op if name isn't registered."""
         self.r.srem(_CRON_SET, name)
         self.r.delete(_cron_key(name))
 
     def list_recurring(self) -> list[dict]:
+        """All registered recurring jobs with their schedule and next_run."""
         return [self._read(name) for name in self.r.smembers(_CRON_SET)]
 
     def _read(self, name: str) -> dict:
