@@ -106,3 +106,7 @@ def test_queue_names_and_depths(store):
     store.enqueue(Job(queue="alpha", payload={}))
     store.enqueue(Job(queue="beta", payload={}))
     assert store.queue_names() == ["alpha", "beta"]
+
+
+def test_get_job_returns_none_for_unknown_id(store):
+    assert store.get_job("does-not-exist") is None
