@@ -50,3 +50,14 @@ def test_heartbeat_marks_worker_live_then_dead_after_expiry(task_queue):
     task_queue.redis.delete("tq:worker:w1")
     statuses = {s["worker_id"]: s["status"] for s in worker_status(task_queue)}
     assert statuses["w1"] == "dead"
+
+
+def test_run_once_falls_through_to_second_queue_when_first_empty(task_queue):
+    task_queue.enqueue("q2", {"n": 7})
+    seen = []
+    w = Worker(task_queue, ["q1", "q2"], lambda job: seen.append(job.payload["n"]), worker_id="w1")
+
+    did_work = w.run_once()
+
+    assert did_work is True
+    assert seen == [7]
