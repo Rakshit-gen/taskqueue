@@ -58,3 +58,17 @@ def test_unregister_removes_recurring_job(task_queue):
 
     sched.unregister("ping")
     assert sched.list_recurring() == []
+
+
+def test_list_recurring_round_trips_registration_fields(task_queue):
+    sched = Scheduler(task_queue)
+    sched.register("digest", queue="emails", payload={"kind": "digest"}, interval_seconds=60, priority=3, max_attempts=2)
+
+    [spec] = sched.list_recurring()
+    assert spec["name"] == "digest"
+    assert spec["queue"] == "emails"
+    assert spec["payload"] == {"kind": "digest"}
+    assert spec["interval_seconds"] == 60
+    assert spec["cron"] is None
+    assert spec["priority"] == 3
+    assert spec["max_attempts"] == 2
