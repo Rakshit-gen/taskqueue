@@ -26,3 +26,9 @@ def test_backoff_respects_cap():
 def test_negative_attempt_rejected():
     with pytest.raises(ValueError):
         backoff_seconds(-1)
+
+
+def test_backoff_default_base_and_cap_used_when_omitted():
+    for _ in range(50):
+        v = backoff_seconds(0)
+        assert 0 <= v <= 1.0
