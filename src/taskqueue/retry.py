@@ -1,3 +1,5 @@
+"""Backoff scheduling for job retries."""
+
 from __future__ import annotations
 
 import random
