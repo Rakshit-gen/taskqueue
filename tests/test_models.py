@@ -19,3 +19,11 @@ def test_from_redis_round_trips_to_redis_output():
     assert restored.priority == job.priority
     assert restored.status == JobStatus.PENDING
     assert restored.max_attempts == 2
+
+
+def test_from_redis_maps_empty_strings_back_to_none():
+    job = Job(queue="emails", payload={}, idempotency_key=None, last_error=None, worker_id=None)
+    restored = Job.from_redis(job.to_redis())
+    assert restored.idempotency_key is None
+    assert restored.last_error is None
+    assert restored.worker_id is None
