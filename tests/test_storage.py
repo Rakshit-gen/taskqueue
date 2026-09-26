@@ -123,3 +123,12 @@ def test_list_in_progress_reflects_claimed_jobs(store):
     claimed = store.claim("q", "w1")
     in_progress = store.list_in_progress("q")
     assert [j.id for j in in_progress] == [claimed.id]
+
+
+def test_list_dlq_returns_dead_lettered_jobs(store):
+    job = Job(queue="q", payload={}, max_attempts=1)
+    store.enqueue(job)
+    claimed = store.claim("q", "w1")  # attempts is now 1, equal to max_attempts
+    dead = store.fail(claimed, "boom", backoff_seconds=0)
+    assert dead.status == JobStatus.DEAD
+    assert [j.id for j in store.list_dlq("q")] == [dead.id]
