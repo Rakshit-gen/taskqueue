@@ -49,6 +49,7 @@ _STATUS_LISTERS = {
 
 
 def create_app(task_queue: TaskQueue) -> FastAPI:
+    """Build the read/inspect/retry/cancel admin API over a TaskQueue's store."""
     app = FastAPI(title="taskqueue admin API")
     store = task_queue.store
 
