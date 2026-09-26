@@ -110,3 +110,9 @@ def test_queue_names_and_depths(store):
 
 def test_get_job_returns_none_for_unknown_id(store):
     assert store.get_job("does-not-exist") is None
+
+
+def test_list_pending_respects_limit(store):
+    for i in range(5):
+        store.enqueue(Job(queue="q", payload={"i": i}))
+    assert len(store.list_pending("q", limit=2)) == 2
