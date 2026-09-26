@@ -71,3 +71,12 @@ def test_list_workers_empty_initially(client):
     resp = client.get("/workers")
     assert resp.status_code == 200
     assert resp.json() == []
+
+
+def test_cancel_404s_for_already_completed_job(client, task_queue):
+    job = task_queue.enqueue("q", {})
+    claimed = task_queue.claim("q", "w1")
+    task_queue.complete(claimed)
+
+    resp = client.post(f"/jobs/{job.id}/cancel")
+    assert resp.status_code == 404
