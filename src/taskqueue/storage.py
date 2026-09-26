@@ -180,6 +180,7 @@ class Store:
 
     # -- reads ---------------------------------------------------------------
     def get_job(self, job_id: str) -> Job | None:
+        """Fetch a job by id, or None if no hash exists for that id."""
         data = self.r.hgetall(self._job_key(job_id))
         if not data:
             return None
