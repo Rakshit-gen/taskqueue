@@ -32,6 +32,12 @@ def test_list_jobs_rejects_unknown_status(client):
     assert resp.status_code == 400
 
 
+@pytest.mark.parametrize("limit", [0, -1, 1001])
+def test_list_jobs_rejects_out_of_range_limit(client, limit):
+    resp = client.get("/queues/q/jobs", params={"limit": limit})
+    assert resp.status_code == 422
+
+
 def test_get_job_detail(client, task_queue):
     job = task_queue.enqueue("q", {"n": 1})
     resp = client.get(f"/jobs/{job.id}")

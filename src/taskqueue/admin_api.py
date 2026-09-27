@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
 from taskqueue.client import TaskQueue
@@ -58,7 +58,7 @@ def create_app(task_queue: TaskQueue) -> FastAPI:
         return [{"name": q, **store.queue_depths(q)} for q in store.queue_names()]
 
     @app.get("/queues/{queue}/jobs")
-    def list_jobs(queue: str, status: str = "pending", limit: int = 100):
+    def list_jobs(queue: str, status: str = "pending", limit: int = Query(100, ge=1, le=1000)):
         lister_name = _STATUS_LISTERS.get(status)
         if lister_name is None:
             raise HTTPException(400, f"unknown status '{status}', expected one of {list(_STATUS_LISTERS)}")
