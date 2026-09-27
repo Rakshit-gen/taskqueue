@@ -118,6 +118,29 @@ def test_list_pending_respects_limit(store):
     assert len(store.list_pending("q", limit=2)) == 2
 
 
+def test_list_methods_return_empty_for_non_positive_limit(store):
+    # Redis ZRANGE/LRANGE treat a stop index of -1 as "last element", so
+    # limit=0 naively becomes zrange(key, 0, -1) -- the WHOLE set -- unless
+    # guarded explicitly. Same trap for any negative limit. Populate all
+    # four lists with real entries so the guard is what's under test, not
+    # an empty set that would pass either way.
+    dead = store.enqueue(Job(queue="q", payload={}, max_attempts=1))
+    for i in range(3):
+        store.enqueue(Job(queue="q", payload={"i": i}))
+    claimed_dead = store.claim("q", "w1")
+    assert claimed_dead.id == dead.id  # sanity: it's first in FIFO order, claimed here
+    store.fail(claimed_dead, "boom", backoff_seconds=0)
+    store.claim("q", "w1")  # leave one job in_progress
+    completed = store.claim("q", "w1")
+    store.ack(completed)
+
+    for limit in (0, -1, -100):
+        assert store.list_pending("q", limit=limit) == []
+        assert store.list_dlq("q", limit=limit) == []
+        assert store.list_in_progress("q", limit=limit) == []
+        assert store.list_completed("q", limit=limit) == []
+
+
 def test_list_in_progress_reflects_claimed_jobs(store):
     store.enqueue(Job(queue="q", payload={}))
     claimed = store.claim("q", "w1")
