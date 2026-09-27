@@ -157,7 +157,12 @@ class Store:
         job = self.get_job(job_id)
         if job is None or job.status != JobStatus.DEAD:
             return None
-        self.r.zrem(self._dlq_key(job.queue), job.id)
+        removed = self.r.zrem(self._dlq_key(job.queue), job.id)
+        if not removed:
+            # Another concurrent retry_dlq_job call already claimed this
+            # job between our status check and this zrem (same TOCTOU
+            # guard cancel() uses below).
+            return None
         job.status = JobStatus.PENDING
         job.attempts = 0
         job.scheduled_at = time.time()

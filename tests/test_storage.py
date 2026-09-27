@@ -72,6 +72,27 @@ def test_retry_dlq_job_resets_attempts_and_requeues(store):
     assert store.queue_depths("q") == {"pending": 1, "in_progress": 0, "dlq": 0}
 
 
+def test_retry_dlq_job_is_not_double_processed_by_concurrent_callers(store):
+    # retry_dlq_job checks status then zrem's the dlq entry as two separate
+    # Redis calls, so two concurrent callers can both pass the status check
+    # (both see DEAD) before either's zrem runs. Simulate the interleaving:
+    # remove the dlq entry out from under a call whose job hash still says
+    # DEAD (as a racing caller's zrem would), and confirm the loser gets
+    # None instead of double-processing the retry.
+    job = Job(queue="q", payload={}, max_attempts=1)
+    store.enqueue(job)
+    claimed = store.claim("q", "w1")
+    store.fail(claimed, "boom", backoff_seconds=0)
+    assert store.get_job(job.id).status == JobStatus.DEAD
+
+    store.r.zrem(store._dlq_key("q"), job.id)  # simulate a racing retry's zrem
+    loser = store.retry_dlq_job(job.id)
+    assert loser is None
+    # and it must not have mutated the job hash despite the status still
+    # reading DEAD at the time retry_dlq_job re-fetched it
+    assert store.get_job(job.id).status == JobStatus.DEAD
+
+
 def test_cancel_removes_pending_job(store):
     job = Job(queue="q", payload={})
     store.enqueue(job)
